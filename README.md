@@ -25,6 +25,13 @@ description: Read/write files on the device.
 |:-:|:-:|
 |[![Build status](https://ci.appveyor.com/api/projects/status/github/apache/cordova-plugin-file?branch=master)](https://ci.appveyor.com/project/ApacheSoftwareFoundation/cordova-plugin-file)|[![Build Status](https://travis-ci.org/apache/cordova-plugin-file.svg?branch=master)](https://travis-ci.org/apache/cordova-plugin-file)|
 
+# Why a fork?
+
+We need to prevent Chrome browser to ask disk access permission, even when it is not needed.
+See original issue [here](https://github.com/apache/cordova-plugin-file/issues/253)
+
+Once a fix to the issue is released for the original plugin, the fork can be deleted.
+
 # cordova-plugin-file
 
 This plugin implements a File API allowing read/write access to files residing on the device.
