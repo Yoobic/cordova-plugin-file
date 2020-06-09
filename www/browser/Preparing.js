@@ -66,7 +66,7 @@
     // Asks for permission to access the file system
     window.initFileSystemPermissions = function () {
         window.requestFileSystem(window.TEMPORARY, 1, createFileEntryFunctions, function () {});
-    }
+    };
 
     // Resolves a filesystem entry by its path - which is passed either in standard (filesystem:file://) or
     // Cordova-specific (cdvfile://) universal way.
