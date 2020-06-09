@@ -63,11 +63,9 @@
         fail('This browser does not support this function');
     };
 
-    // Lets a web site or app gain access to a sandboxed file system for its own use.
-    // The returned FileSystem is then available for use with the other file system APIs.
-    var nativeRequestFileSystem = window.requestFileSystem;
-    window.requestFileSystem = function () {
-        nativeRequestFileSystem(window.TEMPORARY, 1, createFileEntryFunctions, function () {});
+    // Asks for permission to access the file system
+    window.initFileSystemPermissions = function () {
+        window.requestFileSystem(window.TEMPORARY, 1, createFileEntryFunctions, function () {});
     }
 
     // Resolves a filesystem entry by its path - which is passed either in standard (filesystem:file://) or
