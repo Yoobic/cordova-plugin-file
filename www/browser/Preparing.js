@@ -27,14 +27,16 @@
         return;
     }
 
-    var channel = require('cordova/channel');
     var FileError = require('./FileError');
     var PERSISTENT_FS_QUOTA = 5 * 1024 * 1024;
     var filePluginIsReadyEvent = new Event('filePluginIsReady'); // eslint-disable-line no-undef
 
-    var entryFunctionsCreated = false;
-    var quotaWasRequested = false;
     var eventWasThrown = false;
+
+    /**
+     * Define the entry functions
+     */
+    window.isFilePluginReadyRaised = function () { return eventWasThrown; };
 
     if (!window.requestFileSystem) {
         window.requestFileSystem = function (type, size, win, fail) {
@@ -42,8 +44,6 @@
                 fail('Not supported');
             }
         };
-    } else {
-        window.requestFileSystem(window.TEMPORARY, 1, createFileEntryFunctions, function () {});
     }
 
     if (!window.resolveLocalFileSystemURL) {
@@ -52,6 +52,22 @@
                 fail('Not supported');
             }
         };
+    }
+
+    window.initPersistentFileSystem = function (size, win, fail) {
+        if (navigator.webkitPersistentStorage) {
+            navigator.webkitPersistentStorage.requestQuota(size, win, fail);
+            return;
+        }
+
+        fail('This browser does not support this function');
+    };
+
+    // Lets a web site or app gain access to a sandboxed file system for its own use.
+    // The returned FileSystem is then available for use with the other file system APIs.
+    var nativeRequestFileSystem = window.requestFileSystem;
+    window.requestFileSystem = function () {
+        nativeRequestFileSystem(window.TEMPORARY, 1, createFileEntryFunctions, function () {});
     }
 
     // Resolves a filesystem entry by its path - which is passed either in standard (filesystem:file://) or
@@ -154,39 +170,21 @@
                     }
                 };
 
-                fileEntry.remove(function () { entryFunctionsCreated = true; }, function () { /* empty callback */ });
+                fileEntry.remove(function () {
+                    window.dispatchEvent(filePluginIsReadyEvent);
+                    eventWasThrown = true;
+
+                }, function () { /* empty callback */ });
             });
         });
     }
 
-    window.initPersistentFileSystem = function (size, win, fail) {
-        if (navigator.webkitPersistentStorage) {
-            navigator.webkitPersistentStorage.requestQuota(size, win, fail);
-            return;
-        }
-
-        fail('This browser does not support this function');
-    };
-
-    window.isFilePluginReadyRaised = function () { return eventWasThrown; };
-
+    /**
+     * Initialize the default quota
+     */
     window.initPersistentFileSystem(PERSISTENT_FS_QUOTA, function () {
         console.log('Persistent fs quota granted');
-        quotaWasRequested = true;
     }, function (e) {
         console.log('Error occured while trying to request Persistent fs quota: ' + JSON.stringify(e));
     });
-
-    channel.onCordovaReady.subscribe(function () {
-        function dispatchEventIfReady () {
-            if (entryFunctionsCreated && quotaWasRequested) {
-                window.dispatchEvent(filePluginIsReadyEvent);
-                eventWasThrown = true;
-            } else {
-                setTimeout(dispatchEventIfReady, 100);
-            }
-        }
-
-        dispatchEventIfReady();
-    }, false);
 })();
