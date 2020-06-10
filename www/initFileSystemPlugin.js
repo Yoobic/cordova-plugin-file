@@ -21,7 +21,7 @@
 
 (function () {
 
-    var createFileEntryFunctions = function (fs) {
+    var createFileEntryFunctions = function (fs, successCallback, errorCallback) {
         fs.root.getFile('todelete_658674_833_4_cdv', {create: true}, function (fileEntry) {
             var fileEntryType = Object.getPrototypeOf(fileEntry);
             var entryType = Object.getPrototypeOf(fileEntryType);
@@ -70,21 +70,23 @@
                 };
 
                 fileEntry.remove(function () {
-                    // window.dispatchEvent(filePluginIsReadyEvent);
-                    // eventWasThrown = true;
+                    if (successCallback) {
+                        successCallback();
+                    }
 
-                }, function () { /* empty callback */ });
+                }, errorCallback);
             });
         });
-    }
+    };
 
     // For browser platform: not all browsers use this file.
     function checkBrowser () {
         if (cordova.platformId === 'browser' && require('./isChrome')()) { // eslint-disable-line no-undef
-            var chromeInitFileSystemPermissions = function() {
-                window.requestFileSystem(window.TEMPORARY, 1, createFileEntryFunctions, function () {});
-            }
-            module.exports = chromeInitFileSystemPermissions;
+            module.exports = function (successCallback, errorCallback) {
+                window.requestFileSystem(window.TEMPORARY, 1, function (fs) {
+                    createFileEntryFunctions(fs, successCallback, errorCallback);
+                }, errorCallback);
+            };
             return true;
         }
         return false;
@@ -93,9 +95,7 @@
         return;
     }
 
-    var otherInitFileSystemPermissions = function () {
+    module.exports = function () {
         /* No op for all the other browsers */
-    }
-
-    module.exports = otherInitFileSystemPermissions;
+    };
 })();

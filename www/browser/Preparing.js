@@ -29,14 +29,6 @@
 
     var FileError = require('./FileError');
     var PERSISTENT_FS_QUOTA = 5 * 1024 * 1024;
-    // var filePluginIsReadyEvent = new Event('filePluginIsReady'); // eslint-disable-line no-undef
-
-    // var eventWasThrown = false;
-
-    // /**
-    //  * Define the entry functions
-    //  */
-    // window.isFilePluginReadyRaised = function () { return eventWasThrown; };
 
     if (!window.requestFileSystem) {
         window.requestFileSystem = function (type, size, win, fail) {

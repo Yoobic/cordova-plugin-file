@@ -98,8 +98,8 @@ xmlns:android="http://schemas.android.com/apk/res/android"
 
     <js-module src="www/fileSystems.js" name="fileSystems" />
 
-    <js-module src="www/initFileSystemPermissions.js" name="initFileSystemPermissions">
-        <clobbers target="window.initFileSystemPermissions" />
+    <js-module src="www/initFileSystemPlugin.js" name="initFileSystemPlugin">
+        <clobbers target="window.initFileSystemPlugin" />
     </js-module>
 
     <js-module src="www/requestFileSystem.js" name="requestFileSystem">
