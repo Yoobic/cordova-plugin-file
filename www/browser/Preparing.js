@@ -29,14 +29,14 @@
 
     var FileError = require('./FileError');
     var PERSISTENT_FS_QUOTA = 5 * 1024 * 1024;
-    var filePluginIsReadyEvent = new Event('filePluginIsReady'); // eslint-disable-line no-undef
+    // var filePluginIsReadyEvent = new Event('filePluginIsReady'); // eslint-disable-line no-undef
 
-    var eventWasThrown = false;
+    // var eventWasThrown = false;
 
-    /**
-     * Define the entry functions
-     */
-    window.isFilePluginReadyRaised = function () { return eventWasThrown; };
+    // /**
+    //  * Define the entry functions
+    //  */
+    // window.isFilePluginReadyRaised = function () { return eventWasThrown; };
 
     if (!window.requestFileSystem) {
         window.requestFileSystem = function (type, size, win, fail) {
@@ -61,11 +61,6 @@
         }
 
         fail('This browser does not support this function');
-    };
-
-    // Asks for permission to access the file system
-    window.initFileSystemPermissions = function () {
-        window.requestFileSystem(window.TEMPORARY, 1, createFileEntryFunctions, function () {});
     };
 
     // Resolves a filesystem entry by its path - which is passed either in standard (filesystem:file://) or
@@ -119,63 +114,6 @@
             nativeResolveLocalFileSystemURL(url, win, fail);
         }
     };
-
-    function createFileEntryFunctions (fs) {
-        fs.root.getFile('todelete_658674_833_4_cdv', {create: true}, function (fileEntry) {
-            var fileEntryType = Object.getPrototypeOf(fileEntry);
-            var entryType = Object.getPrototypeOf(fileEntryType);
-
-            // Save the original method
-            var origToURL = entryType.toURL;
-            entryType.toURL = function () {
-                var origURL = origToURL.call(this);
-                if (this.isDirectory && origURL.substr(-1) !== '/') {
-                    return origURL + '/';
-                }
-                return origURL;
-            };
-
-            entryType.toNativeURL = function () {
-                console.warn("DEPRECATED: Update your code to use 'toURL'");
-                return this.toURL();
-            };
-
-            entryType.toInternalURL = function () {
-                if (this.toURL().indexOf('persistent') > -1) {
-                    return 'cdvfile://localhost/persistent' + this.fullPath;
-                }
-
-                if (this.toURL().indexOf('temporary') > -1) {
-                    return 'cdvfile://localhost/temporary' + this.fullPath;
-                }
-            };
-
-            entryType.setMetadata = function (win, fail /*, metadata */) {
-                if (fail) {
-                    fail('Not supported');
-                }
-            };
-
-            fileEntry.createWriter(function (writer) {
-                var originalWrite = writer.write;
-                var writerProto = Object.getPrototypeOf(writer);
-                writerProto.write = function (blob) {
-                    if (blob instanceof Blob) { // eslint-disable-line no-undef
-                        originalWrite.apply(this, [blob]);
-                    } else {
-                        var realBlob = new Blob([blob]); // eslint-disable-line no-undef
-                        originalWrite.apply(this, [realBlob]);
-                    }
-                };
-
-                fileEntry.remove(function () {
-                    window.dispatchEvent(filePluginIsReadyEvent);
-                    eventWasThrown = true;
-
-                }, function () { /* empty callback */ });
-            });
-        });
-    }
 
     /**
      * Initialize the default quota
